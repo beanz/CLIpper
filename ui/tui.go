@@ -217,13 +217,16 @@ func (tui *TUI) restoreCommandInput() {
 	tui.App.SetFocus(tui.Input)
 }
 
-func (tui *TUI) promptForInput(prompt string, defaultValue string, callback func(bool, string)) {
+func (tui *TUI) promptForInput(prompt string, defaultValue string, validation func(string, rune) bool, callback func(string)) {
 	tui.TempInput = cmdinput.NewInputField().
 		SetText(defaultValue).
 		SetLabel(prompt).
+		SetAcceptanceFunc(validation).
 		SetDoneFunc(func(key tcell.Key) {
 			tui.restoreCommandInput()
-			callback(key == tcell.KeyEnter, tui.TempInput.GetText())
+			if key == tcell.KeyEnter {
+				callback(tui.TempInput.GetText())
+			}
 		}).SetLabelStyle(
 		tcell.StyleDefault.Background(AppConfig.Theme.InputBackgroundColor.Color()).
 			Foreground(AppConfig.Theme.InputPromptColor.Color()).Bold(true)).

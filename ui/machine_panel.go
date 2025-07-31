@@ -85,14 +85,13 @@ func (t MachineLimitPanelContent) GetCell(row int, column int) *tview.TableCell 
 
 func (t MachineLimitPanelContent) onSelected(row int, column int) {
 	limit := MachineLimits.Members()[row]
-	go t.tui.promptForInput(fmt.Sprintf("New limit for %s > ", limit.Value.DisplayName), "", func(entered bool, value string) {
-		if entered {
-			newLimit, err := strconv.ParseInt(value, 10, 32)
-			if err != nil {
-				t.tui.Output.WriteError(err.Error())
-			} else {
-				t.tui.ExecuteGcode(fmt.Sprintf("SET_VELOCITY_LIMIT %s=%d", limit.Value.ParamName, newLimit))
-			}
+	go t.tui.promptForInput(fmt.Sprintf("New limit for %s > ", limit.Value.DisplayName), "", tview.InputFieldInteger, func(value string) {
+		newLimit, err := strconv.ParseInt(value, 10, 32)
+		if err != nil {
+			// this shouldn't happen any more
+			t.tui.Output.WriteError(err.Error())
+		} else {
+			t.tui.ExecuteGcode(fmt.Sprintf("SET_VELOCITY_LIMIT %s=%d", limit.Value.ParamName, newLimit))
 		}
 	})
 }
