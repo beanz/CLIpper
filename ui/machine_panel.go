@@ -65,6 +65,11 @@ func (t MachineLimitPanelContent) GetColumnCount() int { return 2 }
 
 func (t MachineLimitPanelContent) GetCell(row int, column int) *tview.TableCell {
 	limit := MachineLimits.Members()[row]
+	toolhead := t.tui.State["toolhead"]
+	currentValue := toolhead[limit.Value.StatusKey]
+	if currentValue == nil {
+		return nil
+	}
 	switch column {
 	case 0:
 		return tview.NewTableCell(" " + limit.Value.DisplayName).SetMaxWidth(0).SetExpansion(2).SetSelectable(true).SetClickedFunc(func() bool {
@@ -72,9 +77,6 @@ func (t MachineLimitPanelContent) GetCell(row int, column int) *tview.TableCell 
 			return false
 		})
 	case 1:
-		toolhead := t.tui.State["toolhead"]
-		currentValue := toolhead[limit.Value.StatusKey]
-
 		return tview.NewTableCell(fmt.Sprintf("%s %-5s", strconv.FormatFloat(currentValue.(float64), 'f', 0, 64), limit.Value.Unit)).SetMaxWidth(12).SetAlign(tview.AlignRight).SetExpansion(0).SetSelectable(true).SetClickedFunc(func() bool {
 			t.onSelected(row, column)
 			return false
