@@ -142,17 +142,14 @@ func (t *TemperaturePanelContent) loadSensors() {
 }
 
 func (t *TemperaturePanelContent) onSelected(row int, column int) {
-	go t.tui.promptForInput(fmt.Sprintf("Target temp for %s> ", t.sensors[row].DisplayName), "", func(entered bool, value string) {
-		if entered {
-			targetTemp, err := strconv.ParseFloat(value, 64)
-			if err != nil {
-
-				t.tui.Output.WriteError(err.Error())
-
-			} else {
-				heaterName := t.sensors[row].StatusKey
-				t.tui.ExecuteGcode(fmt.Sprintf("SET_HEATER_TEMPERATURE HEATER=\"%s\" TARGET=%.1f", heaterName, targetTemp))
-			}
+	go t.tui.promptForInput(fmt.Sprintf("Target temp for %s> ", t.sensors[row].DisplayName), "", tview.InputFieldFloat, func(value string) {
+		targetTemp, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			// this shouldn't happen any more
+			t.tui.Output.WriteError(err.Error())
+		} else {
+			heaterName := t.sensors[row].StatusKey
+			t.tui.ExecuteGcode(fmt.Sprintf("SET_HEATER_TEMPERATURE HEATER=\"%s\" TARGET=%.1f", heaterName, targetTemp))
 		}
 	})
 }

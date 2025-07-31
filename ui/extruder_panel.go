@@ -141,32 +141,41 @@ func (t ExtruderPanelContent) onSelected(row int, column int) {
 		t.tui.ExecuteGcode(fmt.Sprintf("G92 E%d F%d", int64(dist), int64(speed)))
 	} else {
 		param := ExtruderParameters.Members()[row]
-		go t.tui.promptForInput(fmt.Sprintf("New param for %s > ", param.Value.DisplayName), "", func(entered bool, value string) {
-			if entered {
-				switch param {
-				case FilamentLength, ExtrusionFeedRate:
-					newValue, err := strconv.ParseInt(value, 10, 32)
-					if err != nil {
-						t.tui.Output.WriteError(err.Error())
-					} else {
-						t.settings[param.Value.StatusKey] = float64(newValue)
-					}
-				case PressureAdvance, SmoothTime:
-					newValue, err := strconv.ParseFloat(value, 32)
-					if err != nil {
-						t.tui.Output.WriteError(err.Error())
-					} else {
-						t.tui.ExecuteGcode(fmt.Sprintf("%s %s=%s", param.Value.CommandName, param.Value.ParamName, strconv.FormatFloat(newValue, 'f', 3, 64)))
-					}
-				default:
-					newValue, err := strconv.ParseInt(value, 10, 32)
-					if err != nil {
-						t.tui.Output.WriteError(err.Error())
-					} else {
-						t.tui.ExecuteGcode(fmt.Sprintf("%s %s%d", param.Value.CommandName, param.Value.ParamName, newValue))
-					}
+		var validationFunc func(string, rune) bool
+		var callbackFunc func(value string)
+		switch param {
+		case FilamentLength, ExtrusionFeedRate:
+			validationFunc = tview.InputFieldInteger
+			callbackFunc = func(value string) {
+				newValue, err := strconv.ParseInt(value, 10, 32)
+				if err != nil {
+					t.tui.Output.WriteError(err.Error())
+				} else {
+					t.settings[param.Value.StatusKey] = float64(newValue)
 				}
 			}
-		})
+		case PressureAdvance, SmoothTime:
+			validationFunc = tview.InputFieldInteger
+			callbackFunc = func(value string) {
+				newValue, err := strconv.ParseFloat(value, 32)
+				if err != nil {
+					t.tui.Output.WriteError(err.Error())
+				} else {
+					t.tui.ExecuteGcode(fmt.Sprintf("%s %s=%s", param.Value.CommandName, param.Value.ParamName, strconv.FormatFloat(newValue, 'f', 3, 64)))
+				}
+			}
+		default:
+			validationFunc = tview.InputFieldInteger
+			callbackFunc = func(value string) {
+				newValue, err := strconv.ParseInt(value, 10, 32)
+				if err != nil {
+					t.tui.Output.WriteError(err.Error())
+				} else {
+					t.tui.ExecuteGcode(fmt.Sprintf("%s %s%d", param.Value.CommandName, param.Value.ParamName, newValue))
+				}
+			}
+		}
+
+		go t.tui.promptForInput(fmt.Sprintf("New param for %s > ", param.Value.DisplayName), "", validationFunc, callbackFunc)
 	}
 }

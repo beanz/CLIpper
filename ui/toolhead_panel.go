@@ -113,14 +113,13 @@ func (t *ToolheadPanelContent) setZOffset() {
 	homing_origin, ok := t.tui.State["gcode_move"]["homing_origin"].([]interface{})
 	if ok && len(homing_origin) >= 3 {
 		zOff := strconv.FormatFloat(homing_origin[2].(float64), 'f', 3, 64)
-		go t.tui.promptForInput("Z-Offset> ", zOff, func(entered bool, value string) {
-			if entered {
-				zOffset, err := strconv.ParseFloat(value, 64)
-				if err != nil {
-					t.tui.Output.WriteError(err.Error())
-				} else {
-					t.tui.ExecuteGcode(fmt.Sprintf("SET_GCODE_OFFSET Z=%.3f", zOffset))
-				}
+		go t.tui.promptForInput("Z-Offset> ", zOff, tview.InputFieldFloat, func(value string) {
+			zOffset, err := strconv.ParseFloat(value, 64)
+			if err != nil {
+				// this shouldn't occur any more
+				t.tui.Output.WriteError(err.Error())
+			} else {
+				t.tui.ExecuteGcode(fmt.Sprintf("SET_GCODE_OFFSET Z=%.3f", zOffset))
 			}
 		})
 	}
@@ -130,14 +129,12 @@ func (t ToolheadPanelContent) setSpeed() {
 	speed_factor, ok := t.tui.State["gcode_move"]["speed_factor"].(float64)
 	if ok {
 		spd := strconv.Itoa(int(math.Trunc(speed_factor * 100)))
-		go t.tui.promptForInput("Speed Factor> ", spd, func(entered bool, value string) {
-			if entered {
-				spd, err := strconv.Atoi(value)
-				if err != nil {
-					t.tui.Output.WriteError(err.Error())
-				} else {
-					t.tui.ExecuteGcode(fmt.Sprintf("M220 S%d", spd))
-				}
+		go t.tui.promptForInput("Speed Factor> ", spd, tview.InputFieldInteger, func(value string) {
+			spd, err := strconv.Atoi(value)
+			if err != nil {
+				t.tui.Output.WriteError(err.Error())
+			} else {
+				t.tui.ExecuteGcode(fmt.Sprintf("M220 S%d", spd))
 			}
 		})
 	}
@@ -149,10 +146,8 @@ func (t *ToolheadPanelContent) doMove(axis string) {
 	if ok && len(position) >= 3 {
 		pos := position[axisIdx].(float64)
 		feedRate := int(t.tui.State["gcode_move"]["speed"].(float64))
-		go t.tui.promptForInput(fmt.Sprintf("New pos. for axis %s> ", axis), strconv.FormatFloat(pos, 'f', -1, 64), func(entered bool, value string) {
-			if entered {
-				t.tui.ExecuteGcode(fmt.Sprintf("G90\nG1 %s%s F%d", axis, value, feedRate))
-			}
+		go t.tui.promptForInput(fmt.Sprintf("New pos. for axis %s> ", axis), strconv.FormatFloat(pos, 'f', -1, 64), tview.InputFieldFloat, func(value string) {
+			t.tui.ExecuteGcode(fmt.Sprintf("G90\nG1 %s%s F%d", axis, value, feedRate))
 		})
 	}
 }
