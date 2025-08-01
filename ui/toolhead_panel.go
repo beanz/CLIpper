@@ -106,7 +106,7 @@ func (t ToolheadPanelContent) onSelected(row int, column int) {
 }
 
 func (t *ToolheadPanelContent) homeAxis(axis string) {
-	go t.tui.ExecuteGcode("G28 " + axis)
+	t.tui.ExecuteGcode("G28 " + axis)
 }
 
 func (t *ToolheadPanelContent) setZOffset() {
@@ -153,7 +153,7 @@ func (t *ToolheadPanelContent) doMove(axis string) {
 }
 
 func (t ToolheadPanelContent) homeAll() {
-	go t.tui.ExecuteGcode("G28")
+	t.tui.ExecuteGcode("G28")
 }
 
 func (t *ToolheadPanelContent) buildAxis(axis string, color tcell.Color) []*tview.TableCell {
